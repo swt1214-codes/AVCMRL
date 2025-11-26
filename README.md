@@ -1,3 +1,4 @@
 # AVCMRL
-run AVCMRL.py to train the model
-check the multi-view data path is correct.
+1、Run AVCMRL.py to train the model；
+2、Check the multi-view data path is correct；
+
