@@ -29,7 +29,6 @@ class SharedAndSpecificLoss(nn.Module):
 
     @staticmethod
     def orthogonal_loss(shared, specific):
-        # 强制不同特征空间之间的正交性，以促进特征分离,减少冗余信息
         shared = shared - shared.mean()
         specific = specific - specific.mean()
         shared = F.normalize(shared, p=2, dim=1)
@@ -40,7 +39,6 @@ class SharedAndSpecificLoss(nn.Module):
 
     @staticmethod
     def similarity_loss(shared_1, shared_2, shared_3):
-        # 最大化不同视图共享特征之间的相似性
         sim_12 = F.cosine_similarity(shared_1, shared_2, dim=1).mean()
         sim_13 = F.cosine_similarity(shared_1, shared_3, dim=1).mean()
         sim_23 = F.cosine_similarity(shared_2, shared_3, dim=1).mean()
@@ -53,7 +51,6 @@ class SharedAndSpecificLoss(nn.Module):
 
     def forward(self, epoch, total_epoch, level_output, classification_output, target):
 
-        # 正交损失
         orthogonal_loss = 0.0
         for i in range(len(level_output)):
             view1_loss = self.orthogonal_loss(level_output[i][0], level_output[i][3])
@@ -61,7 +58,6 @@ class SharedAndSpecificLoss(nn.Module):
             view3_loss = self.orthogonal_loss(level_output[i][2], level_output[i][5])
             orthogonal_loss += view1_loss + view2_loss + view3_loss
 
-        # 相似性损失
         similarity_loss = 0.0
         for i in range(len(level_output)):
             sim_loss = self.similarity_loss(
@@ -69,7 +65,6 @@ class SharedAndSpecificLoss(nn.Module):
             )
             similarity_loss += sim_loss
 
-        # 分类损失
         classification_loss = F.cross_entropy(classification_output, target, label_smoothing=self.smoothing)
 
         alpha = max(0.2, 0.5 * (1 + math.cos(math.pi * epoch / total_epoch)))
@@ -154,10 +149,10 @@ class CrossViewAttention(nn.Module):
 
         B, _ = current_view.size()
 
-        # 生成Q [B, H, D]
+       
         q = self.query(current_view).view(B, self.num_heads, self.head_dim)
 
-        # 分视图投影 [B, H, D]
+    
         k2 = self.key_view2(view2_spec).view(B, self.num_heads, self.head_dim)
         k3 = self.key_view3(view3_spec).view(B, self.num_heads, self.head_dim)
         v2 = self.value_view2(view2_spec).view(B, self.num_heads, self.head_dim)
@@ -215,24 +210,24 @@ class ResCommunicationBlock(nn.Module):
             num_heads=num_heads
         )
 
-        # 归一化
+       
         self.norm = nn.LayerNorm(feature_size)
 
     def init_params(self):
-        # 初始化各视图参数
+        
         self.view1_processor.init_params()
         self.view2_processor.init_params()
         self.view3_processor.init_params()
 
-        # 初始化注意力模块
+      
         for m in [self.fusion1, self.fusion2, self.fusion3]:
-            # 初始化各视图独立的Key/Value投影层
+            
             init.kaiming_normal_(m.key_view2.weight)
             init.kaiming_normal_(m.key_view3.weight)
             init.kaiming_normal_(m.value_view2.weight)
             init.kaiming_normal_(m.value_view3.weight)
 
-            # 初始化其他参数
+            
             init.kaiming_normal_(m.query.weight)
             init.kaiming_normal_(m.out_proj.weight)
 
@@ -394,14 +389,14 @@ class MultipleRoundsCommunication(nn.Module):
             actual_levels += 1
 
 
-            prev_info = [prev_v1, prev_v2, prev_v3]  # 上一轮的视图特征
-            curr_info = [input1_new, input2_new, input3_new]  # 当前更新轮后的视图特征
+            prev_info = [prev_v1, prev_v2, prev_v3]  
+            curr_info = [input1_new, input2_new, input3_new]  
 
 
             view_sim = self.compute_similarity(prev_info, curr_info)
 
             if view_sim >= self.similarity_threshold and i_th >= 1:
-                print(f'通信停止，当前视图间相似度为：{view_sim}， 通信交流轮次为：{actual_levels}！')
+                print(f'Stop！：{view_sim}， communication nums：{actual_levels}！')
                 break
 
 
@@ -510,7 +505,6 @@ def main():
 
     print("Training...")
 
-    # 保存数据，创建文件，写入存储的字段
     csv_path = "../results/RBPpred_draw.csv"
     csv_columns = [
         'Epoch', 'Total_Epochs', 'Training_Loss', 'Training_Acc',
@@ -685,5 +679,6 @@ if __name__ == "__main__":
     print("=================== F1-score ==================")
     for i in range(len(f1_list)):
         print(f1_list[i])
+
 
 
