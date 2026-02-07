@@ -72,8 +72,8 @@ class SharedAndSpecificLoss(nn.Module):
 
 
         total_loss = (
-                alpha * orthogonal_loss +  # 0.2
-                beta * similarity_loss +  # 0.5
+                alpha * orthogonal_loss +  
+                beta * similarity_loss +  
                 1.0 * classification_loss
         )
         return total_loss
@@ -163,16 +163,16 @@ class CrossViewAttention(nn.Module):
         values = torch.stack([v2, v3], dim=2)
 
 
-        q = q.unsqueeze(2)  # [B, H, 1, D]
-        keys = keys.transpose(-1, -2)  # [B, H, D, 2]
+        q = q.unsqueeze(2)  
+        keys = keys.transpose(-1, -2)  
 
 
-        attn_scores = (q @ keys) / (self.head_dim ** 0.5)  # [B, H, 1, 2]
+        attn_scores = (q @ keys) / (self.head_dim ** 0.5)  
         attn_weights = F.softmax(attn_scores, dim=-1)
 
 
-        attn_output = attn_weights @ values  # [B, H, 1, D]
-        attn_output = attn_output.squeeze(2).reshape(B, -1)  # [B, H*D]
+        attn_output = attn_weights @ values  
+        attn_output = attn_output.squeeze(2).reshape(B, -1)  
 
 
         output = self.norm(current_view + self.out_proj(attn_output))
@@ -259,7 +259,7 @@ class ResCommunicationBlock(nn.Module):
 class MultipleRoundsCommunication(nn.Module):
 
     def __init__(self, level_num=5, original_view_size=[252,35,400], view_size=[128, 128, 128], feature_size=128,
-                 n_units=[128, 64], c_n_units=[64, 32], class_num=2, similarity_threshold = 0.95):
+                 n_units=[256, 128], c_n_units=[64, 32], class_num=2, similarity_threshold = 0.9):
 
         super(MultipleRoundsCommunication, self).__init__()
 
@@ -478,9 +478,9 @@ def main():
     # Build Model
     model = MultipleRoundsCommunication(level_num=LEVEL_NUM,
                                         original_view_size=[252,35,400],
-                                        view_size=[128, 128, 128], feature_size=128, n_units=[128, 128],
+                                        view_size=[128, 128, 128], feature_size=128, n_units=[256, 128],
                                         c_n_units=[128, 64],
-                                        class_num=2, similarity_threshold= 0.95)
+                                        class_num=2, similarity_threshold= 0.9)
     model.init_params()
     #print(model)
     #model.show()
@@ -489,7 +489,7 @@ def main():
         model = model.cuda()
 
     # Set up optimizer
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0001, betas=(0.9, 0.98),
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0003, betas=(0.9, 0.98),
                                   weight_decay=0.01)  # lr = 0.0003,wd=0.0001
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
         optimizer,
@@ -679,6 +679,7 @@ if __name__ == "__main__":
     print("=================== F1-score ==================")
     for i in range(len(f1_list)):
         print(f1_list[i])
+
 
 
 
