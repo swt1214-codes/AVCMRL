@@ -13,9 +13,7 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 class RBPpredAttrData(object):
-    """
-        Dataloader for datasets
-    """
+    
 
     def __init__(self, data_dir='RBPpred.mat',
                  mode='train'):
@@ -114,6 +112,5 @@ if __name__ == '__main__':
                                                                 'view3': sample_set[2].detach().cpu().numpy(), \
                                                                 'label': sample_targets.detach().cpu().numpy()
                                                                 })
-        # scio.savemat('trainlabel.mat',
-        #              {'trainlabel': sample_targets.detach().cpu().numpy()})
+       
 
