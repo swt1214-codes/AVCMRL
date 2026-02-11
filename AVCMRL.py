@@ -250,7 +250,7 @@ class ResCommunicationBlock(nn.Module):
 
         attn_tensor = torch.stack([attn1.mean(dim=1),
                                    attn2.mean(dim=1),
-                                   attn3.mean(dim=1)], dim=1)  # shape: (B,3,2)
+                                   attn3.mean(dim=1)], dim=1)  
 
         return v1_new, v2_new, v3_new, v1_spec, v2_spec, v3_spec, v1_shared, v2_shared, v3_shared, attn_tensor
 
@@ -679,6 +679,7 @@ if __name__ == "__main__":
     print("=================== F1-score ==================")
     for i in range(len(f1_list)):
         print(f1_list[i])
+
 
 
 
